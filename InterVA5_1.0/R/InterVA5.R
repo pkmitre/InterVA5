@@ -1,80 +1,17 @@
-#' Provide InterVA5 analysis on the data input.
-#'
-#' This function implements the algorithm in the InterVA5 software.  It
-#' produces individual cause of death (COD) and population cause-specific mortality
-#' fractions.  The output is saved in a .csv file specified by user.
-#' The calculation is based on the conditional and prior distribution
-#' of 61 CODs. The function can also  save the full probability distibution
-#' of each individual to file. All information about each individual is
-#' saved to a va class object.
-#'
-#' Be careful if the input file does not match InterVA5 input format strictly.
-#' The function will run normally as long as the number of symptoms are
-#' correct. Any inconsistent symptom names will be printed in console as
-#' warning. If there is a wrong match of symptom from warning, please change 
-#' the input to the correct order.
-#'
-#' @param Input A matrix input, or data read from csv files in the same format
-#' as required by InterVA5. Sample input is included as data(RandomVA5).
-#' @param HIV An indicator of the level of prevalence of HIV. The input should
-#' be one of the following: "h"(high),"l"(low), or "v"(very low).
-#' @param Malaria An indicator of the level of prevalence of Malaria. The input
-#' should be one of the following: "h"(high),"l"(low), or "v"(very low).
-#' @param write A logical value indicating whether or not the output (including
-#' errors and warnings) will be saved to file.  If the value is set to TRUE, the
-#' user must also provide a value for the parameter "directory".
-#' @param directory The directory to store the output from InterVA5. It should
-#' either be an existing valid directory, or a new folder to be created. If no
-#' path is given and the parameter for "write" is true, then the function stops
-#' and and error message is produced.
-#' @param filename The filename the user wish to save the output. No extension
-#' needed. The output is in .csv format by default.
-#' @param output "classic": The same deliminated output format as InterVA5; or
-#' "extended": deliminated output followed by full distribution of cause of
-#' death proability.
-#' @param append A logical value indicating whether or not the new output
-#' should be appended to the existing file.
-#' @param groupcode A logical value indicating whether or not the group code
-#' will be included in the output causes.
-#' @param ... not used
-#' @return \item{ID }{ identifier from batch (input) file} \item{MALPREV
-#' }{ selected malaria prevalence} \item{HIVPREV }{ selected HIV prevalence}
-#' \item{PREGSTAT }{most likely pregnancy status} \item{PREGLIK }{ likelihood of
-#' PREGSTAT} \item{PRMAT }{ likelihood of maternal death} \item{INDET
-#' }{ indeterminate outcome} \item{CAUSE1 }{ most likely cause} \item{LIK1 }{
-#' likelihood of 1st cause} \item{CAUSE2 }{ second likely cause} \item{LIK2 }{
-#' likelihood of 2nd cause} \item{CAUSE3 }{ third likely cause} \item{LIK3 }{
-#' likelihood of 3rd cause} \item{wholeprob}{ full distribution of causes of death}
-#' \item{COMCAT }{ most likely circumstance of mortality}
-#' \item{COMNUM }{ likelihood of COMCAT}
-#' \item{wholeprob }{ full distribution of causes of death}
-#' @author Jason Thomas Zehang Li, Tyler McCormick, Sam Clark
-#' @seealso \code{\link{InterVA5.plot}}
-#' @references http://www.interva.net/
-#' @keywords InterVA
-#' @export InterVA5
-#' @examples
-#'
-#' data(RandomVA5)
-#' # only fit first 5 observations for a quick illustration
-#' RandomVA5 <- RandomVA5[1:5, ]
-#' 
-#' ## to get easy-to-read version of causes of death make sure the column
-#' ## orders match interVA5 standard input this can be monitored by checking
-#' ## the warnings of column names
-#'
-#' sample.output1 <- InterVA5(RandomVA5, HIV = "h", Malaria = "l", write=FALSE, 
-#'     directory = tempdir(), filename = "VA5_result", output = "extended", append = FALSE)
-#'
-#' \dontrun{
-#' ## to get causes of death with group code for further usage
-#' sample.output2 <- InterVA5(RandomVA5, HIV = "h", Malaria = "l", 
-#'     write = FALSE, directory = "VA test", filename = "VA5_result_wt_code", output = "classic", 
-#'     append = FALSE, groupcode = TRUE)
-#'}
-#' 
-#'
-InterVA5 <- function (Input, HIV, Malaria, write = TRUE, directory = NULL, filename = "VA5_result", 
+source("R/InterVA5.clean.R")
+#* Provide InterVA5 analysis on the data input.
+#* @param Input A matrix input, or data read from csv files in the same format as required by InterVA5
+#* @param HIV An indicator of the level of prevalence of HIV. The input should be one of the following: "h"(high),"l"(low), or "v"(very low).
+#* @param Malaria An indicator of the level of prevalence of Malaria. The input should be one of the following: "h"(high),"l"(low), or "v"(very low).
+#* @param write A logical value indicating whether or not the output (including errors and warnings) will be saved to file.  If the value is set to TRUE, the user must also provide a value for the parameter "directory".
+#* @param directory The directory to store the output from InterVA5. It should either be an existing valid directory, or a new folder to be created. If no path is given and the parameter for "write" is true, then the function stops and and error message is produced.
+#* @param filename The filename the user wish to save the output. No extension needed. The output is in .csv format by default.
+#* @param output "classic": The same deliminated output format as InterVA5; or "extended": deliminated output followed by full distribution of cause of death proability.
+#* @param append A logical value indicating whether or not the new output should be appended to the existing file.
+#* @param groupcode A logical value indicating whether or not the group code will be included in the output causes.
+#* @post /interva5
+# When using this to drive a RESTful interface we don't want the default action to be to write to a file
+InterVA5 <- function (Input, HIV, Malaria, write = FALSE, directory = NULL, filename = "VA5_result",
                       output = "classic", append = FALSE, groupcode = FALSE,
                       ...) 
 {
@@ -148,7 +85,7 @@ InterVA5 <- function (Input, HIV, Malaria, write = TRUE, directory = NULL, filen
     N <- dim(Input)[1]
     S <- dim(Input)[2]
     if (S != dim(probbaseV5)[1]) {
-        stop("error: invalid data input format. Number of values incorrect")
+        stop(paste("error: invalid data input format. Number of values incorrect", "want", dim(probbaseV5)[1], "got", S, sep=" "))
     }
     if (tolower(colnames(Input)[S]) != "i459o") {
         stop("error: the last variable should be 'i459o'")
@@ -387,6 +324,7 @@ InterVA5 <- function (Input, HIV, Malaria, write = TRUE, directory = NULL, filen
     setwd(globle.dir)
     out <- list(ID = ID.list[which(!is.na(ID.list))], VA5 = VAresult[which(!is.na(ID.list))], 
                 Malaria = Malaria, HIV = HIV)
-    class(out) <- "interVA5"
+    # When using this to drive a RESTful interface we don't need to wrap the resulting data
+    #class(out) <- "interVA5"
     return(out)
 }
