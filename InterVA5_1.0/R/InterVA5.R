@@ -10,7 +10,6 @@ source("R/InterVA5.clean.R")
 #* @param append A logical value indicating whether or not the new output should be appended to the existing file.
 #* @param groupcode A logical value indicating whether or not the group code will be included in the output causes.
 #* @post /interva5
-# When using this to drive a RESTful interface we don't want the default action to be to write to a file
 InterVA5 <- function (Input, HIV, Malaria, write = FALSE, directory = NULL, filename = "VA5_result",
                       output = "classic", append = FALSE, groupcode = FALSE,
                       ...) 
