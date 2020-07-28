@@ -184,25 +184,19 @@ InterVA5 <- function (Input, HIV, Malaria, write = FALSE, directory = NULL, file
 
         input.current[1] <- 0                      
         if (sum(input.current[6:12], na.rm=TRUE) < 1) {
-            if (write) {
-                errors <- rbind(errors, paste(index.current, " Error in age indicator: Not Specified "))
-            }
+            errors <- rbind(errors, paste(index.current, " Error in age indicator: Not Specified "))
             next
         }
         if (sum(input.current[4:5], na.rm=TRUE) < 1) {
-            if (write) {
-                errors <- rbind(errors, paste(index.current, " Error in sex indicator: Not Specified "))
-            }
+            errors <- rbind(errors, paste(index.current, " Error in sex indicator: Not Specified "))
             next
         }
         if (sum(input.current[21:328], na.rm=TRUE) < 1) {
-            if (write) {
-                errors <- rbind(errors, paste(index.current, " Error in indicators: No symptoms specified "))
-            }
+            errors <- rbind(errors, paste(index.current, " Error in indicators: No symptoms specified "))
             next
         }
 
-        tmp <- DataCheck5(input.current, id=index.current, probbaseV5=probbaseV5, write=write)
+        tmp <- DataCheck5(input.current, id=index.current, probbaseV5=probbaseV5, write=TRUE) # Doesn't actually write, does collect warnings
         input.current <- tmp$Output
         firstPass <- rbind(firstPass, tmp$firstPass)
         secondPass <- rbind(secondPass, tmp$secondPass)
@@ -325,5 +319,6 @@ InterVA5 <- function (Input, HIV, Malaria, write = FALSE, directory = NULL, file
                 Malaria = Malaria, HIV = HIV)
     # When using this to drive a RESTful interface we don't need to wrap the resulting data
     #class(out) <- "interVA5"
-    return(out)
+    #return(out)
+    return(list(results=out, errors=errors, warnings=paste(firstPass, secondPass)))
 }
