@@ -4,7 +4,14 @@
 
 This branch of the InterVA5 package implements an experimental RESTful interface that allows the InterVA5 algorithm to be accessed via a simple API endpoint.
 
-This interface depends on the plumber R package. The plumber package can be installed from within R using the following R command
+The interface can be run locally via docker:
+
+```
+  docker build -t interva5api .
+  docker run -p5002:5002 interva5api
+```
+
+The interface can also be built and run locally. Before running the plumber package must be installed from within R using the following R command
 
 ```
   install.packages("plumber")
@@ -17,7 +24,7 @@ Once plumber is installed, the interface can be started with the following comma
   Rscript api.R
 ```
 
-API documentation will be available at http://127.0.0.1:5002/__swagger__/
+API documentation describing the API specification will be available at http://127.0.0.1:5002/__swagger__/
 
 To test the API manually:
 
